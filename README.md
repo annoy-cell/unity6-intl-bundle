@@ -1,15 +1,17 @@
 # Unity 6 国际版整合包（Unity Hub + Unity 6000.6.0f1 + 教程）
 
-> ⚠️ **本仓库的定位是「临时文件中转」**：Git 源码树里只放说明文档、校验清单和合并脚本；
-> 5.33 GB 的主体数据放在 **Release 分卷附件**里。
-> 原因：GitHub 对 Git 仓库单文件上限 100 MB，Release 单个附件上限 2 GB。
-> 所以原始 zip 被按 1 GiB 切成了 5 个分卷。
+> ⚠️ **本仓库的定位是「临时文件中转」**：Git 源码树里只有说明文档、校验清单和合并脚本；
+> 5.33 GB 的主体数据以 **Release 分卷附件**形式存放。
+>
+> 为什么必须分卷：GitHub 对 Git 仓库单文件上限 100 MB，Release 单个附件上限 2 GB，
+> 而且附件上传有**服务端超时限制**（实测约 750 秒），所以单个分卷不能开得太大，
+> 否则慢速链路上永远传不完。本仓库因此把原始 zip 切成 36 个分卷。
 
 ---
 
-## 一、包内到底有什么
+## 一、包内有什么
 
-解压后是一个名为 `国际版 UnityHub 和 Unity6编辑器 及教程` 的文件夹：
+合并解压后是一个名为 `国际版 UnityHub 和 Unity6编辑器 及教程` 的文件夹：
 
 | 文件 | 大小 |
 | --- | ---: |
@@ -25,50 +27,59 @@
 
 ---
 
-## 二、下载
+## 二、下载全部 36 个分卷
 
 Release 页面：<https://github.com/annoy-cell/unity6-intl-bundle/releases/tag/v1.0.0>
 
-**必须把下面 5 个分卷全部下载到同一个文件夹**，缺一个都解不开：
+| 分卷 | 数量 | 每卷大小 |
+| --- | ---: | ---: |
+| `part-001` ~ `part-032` | 32 | 33,554,432 B (32 MiB) |
+| `part-033` ~ `part-035` | 3 | 1,073,741,824 B (1 GiB) |
+| `part-036` | 1 | 1,032,061,304 B |
 
-| # | 文件名 | 大小 |
-| --- | --- | ---: |
-| 1 | [`unity6-intl-bundle.zip.001`](https://github.com/annoy-cell/unity6-intl-bundle/releases/download/v1.0.0/unity6-intl-bundle.zip.001) | 1,073,741,824 B |
-| 2 | [`unity6-intl-bundle.zip.002`](https://github.com/annoy-cell/unity6-intl-bundle/releases/download/v1.0.0/unity6-intl-bundle.zip.002) | 1,073,741,824 B |
-| 3 | [`unity6-intl-bundle.zip.003`](https://github.com/annoy-cell/unity6-intl-bundle/releases/download/v1.0.0/unity6-intl-bundle.zip.003) | 1,073,741,824 B |
-| 4 | [`unity6-intl-bundle.zip.004`](https://github.com/annoy-cell/unity6-intl-bundle/releases/download/v1.0.0/unity6-intl-bundle.zip.004) | 1,073,741,824 B |
-| 5 | [`unity6-intl-bundle.zip.005`](https://github.com/annoy-cell/unity6-intl-bundle/releases/download/v1.0.0/unity6-intl-bundle.zip.005) | 1,032,061,304 B |
+合计 = 5,327,028,600 B，与原始 zip 完全一致。
 
-浏览器下载 1 GB 文件容易断，建议用命令行断点续传（更快、可续传）：
+### 推荐：命令行批量下载（支持断点续传）
+
+Windows PowerShell（在目标文件夹里执行）：
+
+```powershell
+1..36 | ForEach-Object {
+  $n = 'part-{0:D3}' -f $_
+  curl.exe -L -C - -O "https://github.com/annoy-cell/unity6-intl-bundle/releases/download/v1.0.0/$n"
+}
+```
+
+Linux / macOS：
 
 ```bash
 BASE=https://github.com/annoy-cell/unity6-intl-bundle/releases/download/v1.0.0
-for i in 001 002 003 004 005; do
-  curl -L -C - -O "$BASE/unity6-intl-bundle.zip.$i"
-done
+for i in $(seq -w 1 36); do curl -L -C - -O "$BASE/part-0$i"; done
 ```
+
+> 浏览器逐个点 36 次也可以，但 1 GB 的分卷容易断，命令行断点续传更省心。
 
 ---
 
 ## 三、合并 + 解压（一步搞定）
 
-把 5 个分卷和 [`merge_and_extract.bat`](merge_and_extract.bat) 放在同一个文件夹，
+把 **36 个分卷** 和 [`merge_and_extract.bat`](merge_and_extract.bat) 放在同一个文件夹，
 **双击 `merge_and_extract.bat`**。脚本会：
 
-1. 检查 5 个分卷是否齐全；
-2. 用 `copy /b` 二进制拼接成 `unity6-intl-bundle.zip`；
-3. 校验合并后大小是否等于 5,327,028,600 字节；
+1. 检查 `part-001` ~ `part-036` 是否齐全，缺哪个会明确报出来；
+2. 用 `copy /b` 按顺序二进制拼接成 `unity6-intl-bundle.zip`；
+3. 校验合并后大小是否正好等于 5,327,028,600 字节；
 4. 自动解压出 `国际版 UnityHub 和 Unity6编辑器 及教程` 文件夹。
+
+> 需要约 11 GB 空闲磁盘（合并产物 5.0 GB + 解压产物 5.0 GB）。
 
 ### 手动方式
 
 ```bat
-copy /b unity6-intl-bundle.zip.001+unity6-intl-bundle.zip.002+unity6-intl-bundle.zip.003+unity6-intl-bundle.zip.004+unity6-intl-bundle.zip.005 unity6-intl-bundle.zip
+copy /b part-001+part-002+...+part-036 unity6-intl-bundle.zip
 ```
 
-然后用 7-Zip / Bandizip / Windows 资源管理器正常解压 `unity6-intl-bundle.zip` 即可。
-
-> `copy /b` 的参数顺序不能乱，必须 .001 → .005 依次拼接。
+顺序必须是 `part-001` → `part-036`，不能乱。然后用 7-Zip / Bandizip / 资源管理器解压。
 
 ---
 
@@ -80,27 +91,20 @@ copy /b unity6-intl-bundle.zip.001+unity6-intl-bundle.zip.002+unity6-intl-bundle
 sha256sum -c SHA256SUMS.txt
 ```
 
-Windows PowerShell：
+Windows：
 
 ```powershell
-Get-FileHash .\unity6-intl-bundle.zip.001 -Algorithm SHA256
+Get-FileHash .\part-001 -Algorithm SHA256
 ```
 
-| 分卷 | SHA-256 |
-| --- | --- |
-| .001 | `88710521e2b0b93071b6760b3e5572fc1bb8a8cb466bdd672a6655a603bd1e54` |
-| .002 | `f327d94d8943fd9faab5deefc844d29b937624afbdf41c6acf3da5607bf43b48` |
-| .003 | `f93d7da101f4cff8509fa32f1e8b1b69b7ec50e0d349f81497f82464e6bf2f49` |
-| .004 | `b4588ae5cbae93f599020e6a3f5471355ce02d16940337b40e329414017449c6` |
-| .005 | `bb36e19255253f52779cbb1e42a02f6fd21271ca52640a6574b8d895b9247aae` |
+> 上传完成后已做过一次全量核验：GitHub 为每个附件记录的 `digest:sha256`
+> 与本地文件逐一比对，**36/36 全部一致**。
 
 ---
 
 ## 五、注意事项
 
-- **分卷不可单独解压**，`.001` 不是独立压缩包，必须凑齐 5 个再合并。
-- 本仓库以 GitHub 作为临时存储桶，Release 附件**可能随时被删除**，需要长期保存请自行备份。
+- **分卷不能单独解压**，`part-001` 只是原始 zip 的开头一段字节，必须凑齐 36 个再合并。
+- 本仓库拿 GitHub 当临时存储桶用，Release 附件**可能随时失效或被清理**，重要文件请自行备份。
 - 包内 Unity Hub、Unity 编辑器等软件的著作权归 Unity Technologies 及各厂商所有，
-  这里仅作个人学习与内网分发用途，请勿用于商业再分发。
-- GitHub 对单账号仓库有约 1 GB 的软性存储建议值，本仓库远超该建议值，
-  因此 Release 内容随时可能失效。
+  此处仅作个人学习与内网分发用途，请勿用于商业再分发。
