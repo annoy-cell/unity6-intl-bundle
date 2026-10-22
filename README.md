@@ -59,6 +59,28 @@ for i in $(seq -w 1 36); do curl -L -C - -O "$BASE/part-0$i"; done
 
 > 浏览器逐个点 36 次也可以，但 1 GB 的分卷容易断，命令行断点续传更省心。
 
+### 直连不通时：加镜像前缀
+
+国内网络对 `github.com` 的连通性会波动（实测某些时段整个域名被重置，而 `api.github.com` 仍可用）。
+此时在**任意 Release 下载链接前加上镜像域名**即可：
+
+```text
+https://tvv.tw/https://github.com/annoy-cell/unity6-intl-bundle/releases/download/v1.0.0/part-001
+```
+
+PowerShell 全量走镜像：
+
+```powershell
+1..36 | ForEach-Object {
+  $n = 'part-{0:D3}' -f $_
+  curl.exe -L -C - -O "https://tvv.tw/https://github.com/annoy-cell/unity6-intl-bundle/releases/download/v1.0.0/$n"
+}
+```
+
+> 实测记录：直连被重置的时段，该镜像可以完整下载 32 MiB 分卷，速度约 780 KB/s；
+> 直连通的时候直连反而更快。所以**先试直连，不通再挂镜像**。
+> 镜像为第三方服务，不保证长期可用；**切勿**向任何第三方镜像提交 GitHub 账号凭据或 token。
+
 ---
 
 ## 三、合并 + 解压（一步搞定）
